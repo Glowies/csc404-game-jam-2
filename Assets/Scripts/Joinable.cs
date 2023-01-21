@@ -12,10 +12,17 @@ public class Joinable : MonoBehaviour
 
     private void OnCollisionEnter(Collision other) {
         GameObject otherCube = other.gameObject;
-        if (other.gameObject.TryGetComponent(out Joinable myJoinable)){
-            JoinCube(myJoinable);
+        if (!other.gameObject.TryGetComponent(out Joinable myJoinable))
+        {
+            return;
         }
-        else{ return;}
+        
+        if(myJoinable.HasParent())
+        {
+            return;
+        }
+
+        JoinCube(myJoinable);
     }
 
     public bool HasParent()
@@ -29,10 +36,14 @@ public class Joinable : MonoBehaviour
     }
 
     private void JoinCube(Joinable otherCube){
-        if (!HasParent()){
-            otherCube.transform.parent = parentCube.transform;
-            otherCube.parentCube = this;
+        if (HasParent()){
+            return;
         }
+        otherCube.transform.parent = transform;
+        otherCube.parentCube = this;
+        otherCube.TryGetComponent(out Rigidbody otherRigidbody);
+        otherRigidbody.constraints = RigidbodyConstraints.FreezeAll;
+
         if (CheckChildren() == 4){
             OnComplete.Invoke();
             Debug.Log("Completed Puzzle!");
